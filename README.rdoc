@@ -28,11 +28,10 @@ After:
   script/plugin install git://github.com/smtlaissezfaire/fast_git_deploy.git
 
 == Switch an existing project:
-
+(this is completely untested)
   cap deploy:warm
 
 == Setup a new project:
 
-  cap deploy:setup
   cap deploy:cold
   cap deploy

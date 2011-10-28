@@ -11,6 +11,7 @@ set :migrate_target, :current
 set :releases,       ['current']
 set(:release_path)   { File.join(releases_path, "current") }
 set(:releases_path)  { File.join(deploy_to) }
+set(:current_path)  { "#{deploy_to}" }
 
 namespace :deploy do
   desc <<-DESC
@@ -78,7 +79,7 @@ namespace :deploy do
     set to true, which is the default.
   DESC
   task :finalize_update, :except => { :no_release => true } do
-    if fetch(:normalize_asset_timestamps, true)
+    if fetch(:normalize_asset_timestamps, false)
       stamp = Time.now.utc.strftime("%Y%m%d%H%M.%S")
       asset_paths = %w(images stylesheets javascripts).map { |p| "#{current_path}/public/#{p}" }.join(" ")
       run "find #{asset_paths} -exec touch -t #{stamp} {} ';'; true", :env => { "TZ" => "UTC" }
@@ -130,8 +131,38 @@ namespace :deploy do
     will not destroy any deployed revisions or data.
   DESC
   task :setup, :except => { :no_release => true } do
-    dirs = [deploy_to, shared_path]
-    dirs += shared_children.map { |d| File.join(shared_path, d) }
-    run "#{try_sudo} mkdir -p #{dirs.join(' ')} && #{try_sudo} chmod g+w #{dirs.join(' ')}"
+    dirs = [deploy_to]
+    sudo "mkdir -p #{dirs.join(' ')}"
+    sudo "chown #{deploy_user} #{dirs.join(' ')}"  if fetch(:deploy_user,false)
+  end
+
+  desc <<-DESC
+    Copies your project and updates the symlink. It does this in a \
+    transaction, so that if either `update_code' or `symlink' fail, all \
+    changes made to the remote servers will be rolled back, leaving your \
+    system in the same state it was in before `update' was invoked. Usually, \
+    you will want to call `deploy' instead of `update', but `update' can be \
+    handy if you want to deploy, but not immediately restart your application.
+  DESC
+  task :update do
+    transaction do
+      update_code
+      symlink
+    end
+  end
+
+  task :restart do
+    #noop
+  end
+
+  desc <<-DESC
+    Deploys your project. This calls both `update' and `restart'. Note that \
+    this will generally only work for applications that have already been deployed \
+    once. For a "cold" deploy, you'll want to take a look at the `deploy:cold' \
+    task, which handles the cold start specifically.
+  DESC
+  task :default do
+    update
+    restart
   end
 end
