@@ -93,14 +93,7 @@ namespace :deploy do
 
   desc "Symlink system files"
   task :symlink_system_files, :except => { :no_release => true } do
-    run [
-      "rm -rf #{current_path}/log #{current_path}/public/system #{current_path}/tmp/pids",
-      "mkdir -p #{current_path}/public",
-      "mkdir -p #{current_path}/tmp",
-      "ln -s #{shared_path}/log    #{current_path}/log",
-      "ln -s #{shared_path}/system #{current_path}/public/system",
-      "ln -s #{shared_path}/pids   #{current_path}/tmp/pids"
-    ].join(" && ")
+    #noop
   end
 
   desc "Set the revisions file.  This allows us to go back to previous versions."

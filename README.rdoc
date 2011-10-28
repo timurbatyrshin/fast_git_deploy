@@ -1,5 +1,7 @@
 = fast_git_deploy
 
+This fork is an original fast_git_deploy with all rails-related actions removed
+
 Before (with fast_remote_cache deploy strategy):
 
   $ time cap staging deploy:update

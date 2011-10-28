@@ -83,17 +83,6 @@ namespace :deploy do
     HERE
     task :finalize_clone, :except => { :no_release => true } do
       run "chmod -R g+w #{current_path}" if fetch(:group_writable, true)
-
-      # mkdir -p is making sure that the directories are there for some SCM's that don't
-      # save empty folders
-      run [
-        "rm -rf #{current_path}/log #{current_path}/public/system #{current_path}/tmp/pids",
-        "mkdir -p #{current_path}/public",
-        "mkdir -p #{current_path}/tmp",
-        "ln -s #{shared_path}/log    #{current_path}/log",
-        "ln -s #{shared_path}/system #{current_path}/public/system",
-        "ln -s #{shared_path}/pids   #{current_path}/tmp/pids"
-      ].join(" && ")
     end
   end
 end
