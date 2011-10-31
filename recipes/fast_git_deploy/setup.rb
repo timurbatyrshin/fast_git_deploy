@@ -11,7 +11,7 @@ namespace :deploy do
 
     def self.clone_repository_command(path)
       [
-        "if [ ! -e #{path} ]",
+        "if [ ! -e #{path}/.git ]",
           "then mkdir -p #{deploy_to}",
           "cd #{deploy_to}",
           "#{scm_command} clone #{repository} #{path}",
