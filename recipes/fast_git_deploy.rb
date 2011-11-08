@@ -60,6 +60,7 @@ namespace :deploy do
     run [
       "cd #{current_path}",
       "#{scm_command} fetch",
+      "#{scm_command} stash",
       "#{scm_command} reset --hard origin/#{branch}"
     ].join(" && ")
 
