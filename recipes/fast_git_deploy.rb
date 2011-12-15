@@ -59,9 +59,10 @@ namespace :deploy do
   task :update_code, :except => { :no_release => true } do
     run [
       "cd #{current_path}",
-      "#{scm_command} fetch",
-      "#{scm_command} stash",
-      "#{scm_command} reset --hard origin/#{branch}"
+      "git fetch",
+      "git add $(git status --porcelain | grep '??' | awk '{print $2}')",
+      "git stash",
+      "git reset --hard origin/#{branch}"
     ].join(" && ")
 
     finalize_update
