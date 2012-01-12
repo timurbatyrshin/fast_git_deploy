@@ -1,3 +1,5 @@
+require 'benchmark'
+
 current_dir = File.expand_path(File.dirname(__FILE__))
 
 load File.join(current_dir, "fast_git_deploy", "setup.rb")
