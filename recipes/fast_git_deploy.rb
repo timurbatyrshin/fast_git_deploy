@@ -62,7 +62,7 @@ namespace :deploy do
       "git fetch",
       "git add $(git status --porcelain | grep '??' | awk '{print $2}')",
       "git stash",
-      "git reset --hard origin/#{branch}"
+      "git reset --hard #{query_revision(branch.chomp) { |cmd| run_locally(cmd) } }"
     ].join(" && ")
 
     finalize_update
@@ -167,4 +167,39 @@ namespace :deploy do
     update
     restart
   end
+end
+
+# Getting the actual commit id, in case we were passed a tag
+# or partial sha or something - it will return the sha if you pass a sha, too
+def query_revision(revision)
+  raise ArgumentError, "Deploying remote branches is no longer supported.  Specify the remote branch as a local branch for the git repository you're deploying from (ie: '#{revision.gsub('origin/', '')}' rather than '#{revision}')." if revision =~ /^origin\//
+  return revision if revision =~ /^[0-9a-f]{40}$/
+  command = "git ls-remote #{repository} #{revision}"
+  result = yield(command)
+  revdata = result.split(/[\t\n]/)
+  newrev = nil
+  revdata.each_slice(2) do |refs|
+    rev, ref = *refs
+    if ref.sub(/refs\/.*?\//, '').strip == revision.to_s
+      newrev = rev
+      break
+    end
+  end
+  raise "Unable to resolve revision for '#{revision}' on repository '#{repository}'." unless newrev =~ /^[0-9a-f]{40}$/
+  return newrev
+end
+
+# logs the command then executes it locally.
+# returns the command output as a string
+def run_locally(cmd)
+  logger.trace "executing locally: #{cmd.inspect}" if logger
+  output_on_stdout = nil
+  elapsed = Benchmark.realtime do
+    output_on_stdout = `#{cmd}`
+  end
+  if $?.to_i > 0 # $? is command exit code (posix style)
+    raise Capistrano::LocalArgumentError, "Command #{cmd} returned status code #{$?}"
+  end
+  logger.trace "command finished in #{(elapsed * 1000).round}ms" if logger
+  output_on_stdout
 end
