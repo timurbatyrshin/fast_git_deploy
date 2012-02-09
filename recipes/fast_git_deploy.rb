@@ -64,7 +64,8 @@ namespace :deploy do
       "git fetch",
       "git add $(git status --porcelain | grep '??' | awk '{print $2}')",
       "git stash",
-      "git reset --hard #{query_revision(branch.chomp) { |cmd| run_locally(cmd) } }"
+      "git reset --hard #{query_revision(branch.chomp) { |cmd| run_locally(cmd) } }",
+      "git submodule update --init"
     ].join(" && ")
 
     finalize_update
